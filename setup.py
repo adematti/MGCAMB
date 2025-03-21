@@ -11,8 +11,8 @@ from setuptools import Command
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
 os.chdir(file_dir)
-
-sys.path.insert(0, os.path.join(file_dir, 'camb'))
+pname = 'mgcamb'
+sys.path.insert(0, os.path.join(file_dir, pname))
 _compile: Any = __import__('_compilers')
 
 if _compile.is_windows:
@@ -86,7 +86,7 @@ def clean_dir(path, rmdir=False):
 def make_library(cluster=False):
     os.chdir(os.path.join(file_dir, 'fortran'))
     pycamb_path = '..'
-    lib_file = os.path.join(pycamb_path, 'camb', DLLNAME)
+    lib_file = os.path.join(pycamb_path, pname, DLLNAME)
     if _compile.is_windows or not _compile.check_ifort():
         ok, gfortran_version = _compile.check_gfortran(msg=not _compile.is_windows)
         if ok and '8.2.0' in gfortran_version:
@@ -177,14 +177,14 @@ def make_library(cluster=False):
                           'E.g. on ubuntu install with "sudo apt install make" (or use build-essential package).')
         get_forutils()
         print("Compiling source...")
-        subprocess.call("make python PYCAMB_OUTPUT_DIR=%s/camb/ CLUSTER_SAFE=%d" %
-                        (pycamb_path, int(cluster)), shell=True)
+        subprocess.call("make python PYCAMB_OUTPUT_DIR=%s/%s/ CLUSTER_SAFE=%d" %
+                        (pycamb_path, pname, int(cluster)), shell=True)
         subprocess.call("chmod 755 %s" % lib_file, shell=True)
 
-    if not os.path.isfile(os.path.join(pycamb_path, 'camb', DLLNAME)):
+    if not os.path.isfile(os.path.join(pycamb_path, pname, DLLNAME)):
         sys.exit('Compilation failed')
     tem_file = 'HighLExtrapTemplate_lenspotentialCls.dat'
-    tem = os.path.join(pycamb_path, 'camb', tem_file)
+    tem = os.path.join(pycamb_path, pname, tem_file)
     if not os.path.exists(tem) or os.path.getmtime(tem) < os.path.getmtime(tem_file):
         shutil.copy(tem_file, tem)
 
@@ -248,15 +248,15 @@ class CleanLibrary(MakeLibrary):
 
 
 if __name__ == "__main__":
-    setup(name=os.getenv('CAMB_PACKAGE_NAME', 'camb'),
+    setup(name=os.getenv('CAMB_PACKAGE_NAME', pname),
           zip_safe=False,
           cmdclass={'build_py': SharedLibrary, 'build_cluster': SharedLibraryCluster,
                     'make': MakeLibrary, 'make_cluster': MakeLibraryCluster, 'clean': CleanLibrary,
                     'develop': DevelopLibrary, 'develop_cluster': DevelopLibraryCluster},
-          packages=['camb', 'camb.tests'],
+          packages=[pname, pname + '.tests'],
           platforms="any",
-          package_data={'camb': [DLLNAME, 'HighLExtrapTemplate_lenspotentialCls.dat',
+          package_data={pname: [DLLNAME, 'HighLExtrapTemplate_lenspotentialCls.dat',
                                  'PArthENoPE_880.2_marcucci.dat', 'PArthENoPE_880.2_standard.dat',
                                  'PRIMAT_Yp_DH_Error.dat', 'PRIMAT_Yp_DH_ErrorMC_2021.dat']},
-          test_suite='camb.tests'
+          test_suite=pname + '.tests'
           )

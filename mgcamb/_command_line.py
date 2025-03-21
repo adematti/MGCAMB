@@ -2,8 +2,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-import camb
-from camb.baseconfig import lib_import
+import mgcamb
+from mgcamb.baseconfig import lib_import
 import argparse
 from argparse import RawTextHelpFormatter
 import ctypes
